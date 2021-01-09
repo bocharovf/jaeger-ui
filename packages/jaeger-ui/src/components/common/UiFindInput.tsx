@@ -36,6 +36,7 @@ type TOwnProps = RouteComponentProps<any> & {
 
 export type TExtractUiFindFromStateReturn = {
   uiFind: string | undefined;
+  uiErrorsOnly: boolean;
 };
 
 type TProps = TOwnProps & TExtractUiFindFromStateReturn;
@@ -110,9 +111,10 @@ export class UnconnectedUiFindInput extends React.PureComponent<TProps, StateTyp
 }
 
 export function extractUiFindFromState(state: ReduxState): TExtractUiFindFromStateReturn {
-  const { uiFind: uiFindFromUrl } = queryString.parse(state.router.location.search);
+  const { uiFind: uiFindFromUrl, uiErrorsOnly: uiErrorsOnlyFromUrl } = queryString.parse(state.router.location.search);
   const uiFind = Array.isArray(uiFindFromUrl) ? uiFindFromUrl.join(' ') : uiFindFromUrl;
-  return { uiFind };
+  const uiErrorsOnly = (Array.isArray(uiErrorsOnlyFromUrl) ? uiErrorsOnlyFromUrl.join(' ') : uiErrorsOnlyFromUrl) == "true";
+  return { uiFind, uiErrorsOnly };
 }
 
 export default withRouter(connect(extractUiFindFromState)(UnconnectedUiFindInput));

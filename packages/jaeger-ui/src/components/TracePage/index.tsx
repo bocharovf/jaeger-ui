@@ -55,6 +55,7 @@ import { TraceArchive } from '../../types/archive';
 import { EmbeddedState } from '../../types/embedded';
 import filterSpans from '../../utils/filter-spans';
 import updateUiFind from '../../utils/update-ui-find';
+import updateUiErrorsOnly from '../../utils/update-ui-errorsonly';
 import TraceStatistics from './TraceStatistics/index';
 
 import './index.css';
@@ -80,6 +81,7 @@ type TReduxProps = {
   searchUrl: null | string;
   trace: FetchedTrace | TNil;
   uiFind: string | TNil;
+  uiErrorsOnly: boolean;
 };
 
 type TProps = TDispatchProps & TOwnProps & TReduxProps;
@@ -147,8 +149,8 @@ export class TracePageImpl extends React.PureComponent<TProps, TState> {
       filterSpans,
       // Do not use the memo if the filter text or trace has changed.
       // trace.data.spans is populated after the initial render via mutation.
-      textFilter =>
-        `${textFilter} ${_get(this.props.trace, 'traceID')} ${_get(this.props.trace, 'data.spans.length')}`
+      (textFilter, uiErrorsOnly) =>
+        `${textFilter} ${uiErrorsOnly} ${_get(this.props.trace, 'traceID')} ${_get(this.props.trace, 'data.spans.length')}`
     );
     this._scrollManager = new ScrollManager(trace && trace.data, {
       scrollBy,
@@ -320,8 +322,17 @@ export class TracePageImpl extends React.PureComponent<TProps, TState> {
     this._scrollManager.scrollToPrevVisibleSpan();
   };
 
+  errorFilterChanged = (checked: boolean) => {
+    const { location, history } = this.props;
+    updateUiErrorsOnly({
+      location,
+      history,
+      uiErrorsOnly: checked
+    });
+  };
+
   render() {
-    const { archiveEnabled, archiveTraceState, embedded, id, searchUrl, uiFind, trace } = this.props;
+    const { archiveEnabled, archiveTraceState, embedded, id, searchUrl, uiFind, trace, uiErrorsOnly } = this.props;
     const { slimView, viewType, headerHeight, viewRange } = this.state;
     if (!trace || trace.state === fetchedState.LOADING) {
       return <LoadingIndicator className="u-mt-vast" centered />;
@@ -339,7 +350,7 @@ export class TracePageImpl extends React.PureComponent<TProps, TState> {
         graphFindMatches = getUiFindVertexKeys(uiFind, _get(this.traceDagEV, 'vertices', []));
         findCount = graphFindMatches ? graphFindMatches.size : 0;
       } else {
-        spanFindMatches = this._filterSpans(uiFind, _get(trace, 'data.spans'));
+        spanFindMatches = this._filterSpans(uiFind, uiErrorsOnly, _get(trace, 'data.spans'));
         findCount = spanFindMatches ? spanFindMatches.size : 0;
       }
     }
@@ -349,6 +360,7 @@ export class TracePageImpl extends React.PureComponent<TProps, TState> {
       focusUiFindMatches: this.focusUiFindMatches,
       slimView,
       textFilter: uiFind,
+      errorFilter: uiErrorsOnly,
       viewType,
       viewRange,
       canCollapse: !embedded || !embedded.timeline.hideSummary || !embedded.timeline.hideMinimap,
@@ -373,6 +385,7 @@ export class TracePageImpl extends React.PureComponent<TProps, TState> {
       trace: data,
       updateNextViewRangeTime: this.updateNextViewRangeTime,
       updateViewRangeTime: this.updateViewRangeTime,
+      errorFilterChanged: this.errorFilterChanged,
     };
 
     let view;
@@ -426,8 +439,11 @@ export function mapStateToProps(state: ReduxState, ownProps: TOwnProps): TReduxP
   const { state: locationState } = router.location;
   const searchUrl = (locationState && locationState.fromSearch) || null;
 
+  const { uiFind, uiErrorsOnly } = extractUiFindFromState(state);
+
   return {
-    ...extractUiFindFromState(state),
+    uiFind, 
+    uiErrorsOnly,
     archiveEnabled,
     archiveTraceState,
     embedded,

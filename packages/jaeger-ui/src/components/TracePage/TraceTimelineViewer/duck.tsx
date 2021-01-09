@@ -117,7 +117,7 @@ function calculateFocusedFindRowStates(uiFind: string, spans: Span[], allowHide:
       childrenHiddenIDs.add(span.spanID);
     }
   });
-  const matchedSpanIds = filterSpans(uiFind, spans);
+  const matchedSpanIds = filterSpans(uiFind, false, spans); // TODO: extract uiErrorsOnly
   if (matchedSpanIds && matchedSpanIds.size) {
     matchedSpanIds.forEach(spanID => {
       const span = spansMap.get(spanID);

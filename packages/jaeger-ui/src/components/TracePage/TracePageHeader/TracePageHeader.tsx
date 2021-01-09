@@ -21,6 +21,7 @@ import IoAndroidArrowBack from 'react-icons/lib/io/android-arrow-back';
 import IoIosFilingOutline from 'react-icons/lib/io/ios-filing-outline';
 import MdKeyboardArrowRight from 'react-icons/lib/md/keyboard-arrow-right';
 import { Link } from 'react-router-dom';
+import { Switch } from 'antd';
 
 import AltViewOptions from './AltViewOptions';
 import KeyboardShortcutsHelp from './KeyboardShortcutsHelp';
@@ -58,12 +59,14 @@ type TracePageHeaderEmbedProps = {
   showViewOptions: boolean;
   slimView: boolean;
   textFilter: string | TNil;
+  errorFilter: boolean;
   toSearch: string | null;
   trace: Trace;
   viewType: ETraceViewType;
   updateNextViewRangeTime: (update: ViewRangeTimeUpdate) => void;
   updateViewRangeTime: TUpdateViewRangeTimeFunction;
   viewRange: IViewRange;
+  errorFilterChanged: (checked: boolean) => void;
 };
 
 export const HEADER_ITEMS = [
@@ -126,12 +129,14 @@ export function TracePageHeaderFn(props: TracePageHeaderEmbedProps & { forwarded
     showViewOptions,
     slimView,
     textFilter,
+    errorFilter,
     toSearch,
     trace,
     viewType,
     updateNextViewRangeTime,
     updateViewRangeTime,
     viewRange,
+    errorFilterChanged,
   } = props;
 
   if (!trace) {
@@ -188,6 +193,13 @@ export function TracePageHeaderFn(props: TracePageHeaderEmbedProps & { forwarded
           resultCount={resultCount}
           textFilter={textFilter}
           navigable={viewType === ETraceViewType.TraceTimelineViewer}
+        />
+        <Switch 
+          checkedChildren="Errors only" 
+          unCheckedChildren="All spans" 
+          className="TracePageHeader--errorSwitch" 
+          checked={errorFilter}
+          onChange={errorFilterChanged}
         />
         {showShortcutsHelp && <KeyboardShortcutsHelp className="ub-m2" />}
         {showViewOptions && (

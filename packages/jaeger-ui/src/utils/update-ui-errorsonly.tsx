@@ -18,16 +18,14 @@ import { History as RouterHistory, Location } from 'history';
 
 import { TNil } from '../types';
 
-export default function updateUiFind({
+export default function updateUiErrorsOnly({
   history,
   location,
-  trackFindFunction,
-  uiFind
+  uiErrorsOnly
 }: {
   history: RouterHistory;
   location: Location;
-  trackFindFunction?: (uiFind: string | TNil) => void;
-  uiFind?: string | TNil;
+  uiErrorsOnly?: boolean | TNil;
 }) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let { uiFind: _oldUiFind, uiErrorsOnly: _oldUiErrorsOnly, ...queryParams } = queryString.parse(location.search);
@@ -35,11 +33,8 @@ export default function updateUiFind({
   _oldUiFind = Array.isArray(_oldUiFind) ? _oldUiFind.join(' ') : _oldUiFind;
   _oldUiErrorsOnly = Array.isArray(_oldUiErrorsOnly) ? _oldUiErrorsOnly.join(' ') : _oldUiErrorsOnly;
   
-  if (trackFindFunction) trackFindFunction(uiFind);
-  
-  if (uiFind) (queryParams as Record<string, string>).uiFind = uiFind;
-
-  if (_oldUiErrorsOnly !== undefined) (queryParams as Record<string, string>).uiErrorsOnly = String(_oldUiErrorsOnly);
+  if (_oldUiFind) (queryParams as Record<string, string>).uiFind = _oldUiFind;
+  if (uiErrorsOnly !== undefined) (queryParams as Record<string, string>).uiErrorsOnly = String(uiErrorsOnly);
 
   history.replace({
     ...location,

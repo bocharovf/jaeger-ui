@@ -15,11 +15,10 @@
 import { KeyValuePair, Span } from '../types/trace';
 import { TNil } from '../types';
 
-export default function filterSpans(textFilter: string, spans: Span[] | TNil) {
+export default function filterSpans(textFilter: string, errorsOnly: boolean, spans: Span[] | TNil) {
   if (!spans) {
     return null;
   }
-
   // if a span field includes at least one filter in includeFilters, the span is a match
   const includeFilters: string[] = [];
 
@@ -54,12 +53,15 @@ export default function filterSpans(textFilter: string, spans: Span[] | TNil) {
       : false;
 
   const isSpanAMatch = (span: Span) =>
-    isTextInFilters(includeFilters, span.operationName) ||
-    isTextInFilters(includeFilters, span.process.serviceName) ||
-    isTextInKeyValues(span.tags) ||
-    span.logs.some(log => isTextInKeyValues(log.fields)) ||
-    isTextInKeyValues(span.process.tags) ||
-    includeFilters.some(filter => filter.replace(/^0*/, '') === span.spanID.replace(/^0*/, ''));
+    (!errorsOnly || errorsOnly && span.tags.some(kv => kv.key == "error" && String(kv.value) == "true")) &&
+    (
+      isTextInFilters(includeFilters, span.operationName) ||
+      isTextInFilters(includeFilters, span.process.serviceName) ||
+      isTextInKeyValues(span.tags) ||
+      span.logs.some(log => isTextInKeyValues(log.fields)) ||
+      isTextInKeyValues(span.process.tags) ||
+      includeFilters.some(filter => filter.replace(/^0*/, '') === span.spanID.replace(/^0*/, ''))
+    );
 
   // declare as const because need to disambiguate the type
   const rv: Set<string> = new Set(spans.filter(isSpanAMatch).map((span: Span) => span.spanID));

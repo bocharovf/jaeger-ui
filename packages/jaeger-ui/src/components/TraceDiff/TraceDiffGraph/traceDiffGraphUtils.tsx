@@ -31,7 +31,7 @@ function getUiFindVertexKeysFn(
   if (!uiFind) return new Set<TVertexKey>();
   const newVertexKeys: Set<TVertexKey> = new Set();
   vertices.forEach(({ key, data: { members } }) => {
-    if (_get(filterSpans(uiFind, _map(members, 'span')), 'size')) {
+    if (_get(filterSpans(uiFind, false, _map(members, 'span')), 'size')) { // TODO: extract uiErrorsOnly
       newVertexKeys.add(key);
     }
   });
