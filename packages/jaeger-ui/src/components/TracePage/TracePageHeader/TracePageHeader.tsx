@@ -195,8 +195,8 @@ export function TracePageHeaderFn(props: TracePageHeaderEmbedProps & { forwarded
           navigable={viewType === ETraceViewType.TraceTimelineViewer}
         />
         <Switch 
-          checkedChildren="Errors only" 
-          unCheckedChildren="All spans" 
+          checkedChildren="Error" 
+          unCheckedChildren="All" 
           className="TracePageHeader--errorSwitch" 
           checked={errorFilter}
           onChange={errorFilterChanged}
